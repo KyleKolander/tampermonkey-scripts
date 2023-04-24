@@ -7,27 +7,60 @@
 // @grant        none
 // ==/UserScript==
 
+//
+// This is less than ideal, so if anyone wants to submit a PR with a better approach that'd be just swell.
+//
+
 let alreadyWide = false;
+let isImage = false;
+
+function setPosition(el, position)
+{
+    el?.style?.setProperty('position', position);
+}
 
 function setFlexAndAutoExpand(el)
 {
-    el?.style.setProperty('display', 'flex');
-    el?.style.setProperty('flex', '1 1 auto');
+    el?.style?.setProperty('display', 'flex');
+    el?.style?.setProperty('flex', '1 1 auto');
+}
+
+function setFlexAndAutoExpandAll(selectorArray)
+{
+    selectorArray.forEach(selector =>
+    {
+        setFlexAndAutoExpand(document.querySelector(selector));
+    });
+}
+
+function getWidth(el)
+{
+    return `${el?.clientWidth ?? 0}px`;
 }
 
 function setWidth(el, width)
 {
-    el?.style.setProperty('width', width);
+    el?.style?.setProperty('width', width);
 }
 
 function setTop(el, top)
 {
-    if (el == null || top === '0px')
+    if (top === '0px')
     {
         return;
     }
 
-    el.style.setProperty('top', top, 'important');
+    el?.style?.setProperty('top', top, 'important');
+}
+
+function setMarginTop(el, top)
+{
+    if (top === '0px')
+    {
+        return;
+    }
+
+    el?.style?.setProperty('top', top, 'important');
 }
 
 function getAbsoluteTopBelow(el)
@@ -39,26 +72,42 @@ function getAbsoluteTopBelow(el)
 
 function wideSearchTextbox()
 {
-    const form = document.querySelector('form');
-    setFlexAndAutoExpand(form);
+    let elArray;
+    let selector;
 
-    const formDiv = form.querySelector('div:nth-child(1)');
-    setFlexAndAutoExpand(formDiv);
+    if (isImage)
+    {
+        elArray = [
+            '#kO001e > div:nth-child(2) > div > div:nth-child(1)',
+            'form',
+            'form > div[jscontroller]',
+            'form > div[jscontroller] > div:nth-child(2)'
+        ];
 
-    const formDivDiv = formDiv.querySelector('div:nth-child(1)');
-    setFlexAndAutoExpand(formDivDiv);
+        selector = 'form > div[jscontroller]';
+    }
+    else
+    {
+        elArray = [
+            'form',
+            'form > div[jsmodel]:nth-child(1)',
+            'form > div[jsmodel]:nth-child(1) > div[jscontroller]:nth-child(1)',
+            'form > div[jsmodel]:nth-child(1) > div[jscontroller]:nth-child(1) > div:nth-child(2)'
+        ];
 
-    const formDivDivDiv2 = formDivDiv.querySelector('div:nth-child(2)');
-    setFlexAndAutoExpand(formDivDivDiv2, '100%');
+        selector = 'form > div[jsmodel]:nth-child(1) > div[jscontroller]:nth-child(1)';
+    }
 
-    return formDivDiv;
+    setFlexAndAutoExpandAll(elArray);
+
+    return document.querySelector(selector);
 }
 
-function adjustAutoComplete(formDivDiv)
+function adjustAutoComplete(jscontrollerDiv)
 {
-    const formDivDivDiv2 = formDivDiv.querySelector('div:nth-child(2)');
-    const formDivDivDiv3 = formDivDivDiv2.nextSibling;
-    const top = getAbsoluteTopBelow(formDivDivDiv2);
+    const widenedDiv = jscontrollerDiv.querySelector('div:nth-child(2)');
+    const targetDiv = widenedDiv.nextSibling;
+    const top = getAbsoluteTopBelow(widenedDiv);
 
     let observer;
     function handleChanges()
@@ -68,23 +117,19 @@ function adjustAutoComplete(formDivDiv)
             return;
         }
 
-        setTop(formDivDivDiv3, top);
+        setPosition(targetDiv, 'absolute');
+        setTop(targetDiv, top);
+        const width = getWidth(widenedDiv);
+        setWidth(targetDiv, width);
+        setMarginTop(el, '-3px');
     }
 
-    if (formDivDiv != null)
+    if (jscontrollerDiv != null)
     {
-        // Create a new MutationObserver
         observer = new MutationObserver(handleChanges);
-
-        // Configure the MutationObserver to watch for changes to the entire document
-        const config = { attributes: true, childList: true, subtree: true };
-
-        // Start observing the document
-        //console.log('observer.observe');
-        observer.observe(formDivDiv, config);
+        observer.observe(jscontrollerDiv, { attributes: true, childList: true, subtree: true });
     }
 
-    // Call the handleChanges function initially
     handleChanges();
 }
 
@@ -98,9 +143,10 @@ function adjustAutoComplete(formDivDiv)
     }
 
     alreadyWide = true;
+    isImage = document.querySelector('body > c-wiz') != null;
 
-    const formDivDiv = wideSearchTextbox();
+    const jscontrollerDiv = wideSearchTextbox();
 
-    adjustAutoComplete(formDivDiv);
+    adjustAutoComplete(jscontrollerDiv);
 
 })();
