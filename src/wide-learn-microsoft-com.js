@@ -9,25 +9,34 @@
 
 GM_addStyle(`
 
-div.mainContainer {
+.mainContainer {
     max-width: 100% !important;
     width: 100% !important;
 }
 
-div.is-one-quarter-desktop {
+.left-container {
+    padding-left: 2.25rem !important;
+}
+
+.is-one-quarter-desktop {
     width: 15% !important;
 }
 
-div.is-three-quarters-desktop {
+.is-three-quarters-desktop {
     width: 85% !important;
+    padding-right: 2.25rem !important;
 }
 
-div.column.is-4-desktop {
+.column.is-4-desktop {
     width: 20% !important;
 }
 
-div.column.is-8-desktop {
+.column.is-8-desktop {
     width: 80% !important;
+}
+
+.bolt-checkmark {
+    border-color: #a7a7a6 !important;
 }
 
 `);
